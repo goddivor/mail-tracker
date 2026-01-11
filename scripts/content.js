@@ -445,7 +445,7 @@ function init() {
 
       // Refresh indicators periodically (less frequent now that we have WebSocket)
       // This is just a fallback in case WebSocket events are missed
-      setInterval(addTrackingIndicators, 60000); // Every 60 seconds instead of 5
+      setInterval(addTrackingIndicators, 30000); // Every 30 seconds instead of 5
 
       log('✓ Mail Tracker fully initialized and running');
     } else if (attempts >= maxAttempts) {
