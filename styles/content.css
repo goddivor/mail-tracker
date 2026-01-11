@@ -1,0 +1,80 @@
+/* Mail Tracker - Gmail UI Modifications */
+
+/* Tick container - positioned next to subject */
+.mail-tracker-tick-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Tracking indicator ticks */
+.mail-tracker-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: help;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+/* Single tick - sent but not opened */
+.mail-tracker-tick-single {
+  color: #5f6368;
+  opacity: 0.75;
+  background: rgba(95, 99, 104, 0.08);
+}
+
+.mail-tracker-tick-single:hover {
+  opacity: 1;
+  background: rgba(95, 99, 104, 0.15);
+  transform: scale(1.1);
+}
+
+/* Double tick - opened */
+.mail-tracker-tick-double {
+  color: #34a853;
+  background: rgba(52, 168, 83, 0.1);
+  font-weight: 700;
+}
+
+.mail-tracker-tick-double:hover {
+  background: rgba(52, 168, 83, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+}
+
+/* Badge indicator in email row */
+.mail-tracker-badge {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.mail-tracker-badge-sent {
+  background-color: #fbbc04;
+}
+
+.mail-tracker-badge-opened {
+  background-color: #34a853;
+}
+
+/* Compose window indicator */
+.mail-tracker-compose-indicator {
+  padding: 4px 8px;
+  background: #e8f0fe;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #1967d2;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
