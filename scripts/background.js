@@ -1,7 +1,7 @@
 // Background Service Worker for Mail Tracker
 
-// Import configuration
-importScripts('config.js');
+// Import configuration and socket.io
+importScripts('config.js', 'socket.io.min.js');
 
 // Debug mode
 const DEBUG = true;
@@ -248,12 +248,89 @@ async function checkAllEmailStatuses() {
   }
 }
 
-// Check statuses every 30 seconds
-log('⏰ Setting up periodic status check (every 30s)');
-setInterval(checkAllEmailStatuses, 30000);
+// WebSocket connection
+let socket = null;
 
-// Initial check on startup
+// Initialize WebSocket connection
+async function initializeWebSocket() {
+  const apiUrl = await getApiUrl();
+  const trackingEnabled = await isTrackingEnabled();
+
+  if (!trackingEnabled) {
+    log('⚠️ Tracking is disabled, skipping WebSocket connection');
+    return;
+  }
+
+  log('🔌 Connecting to WebSocket server:', apiUrl);
+
+  try {
+    socket = io(apiUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    });
+
+    socket.on('connect', () => {
+      log('✓ WebSocket connected successfully');
+    });
+
+    socket.on('disconnect', () => {
+      log('⚠️ WebSocket disconnected');
+    });
+
+    socket.on('connect_error', (err) => {
+      error('❌ WebSocket connection error:', err.message);
+    });
+
+    // Listen for email opened events
+    socket.on('email:opened', async (data) => {
+      log('📧 Received email opened event:', data);
+
+      // Update local storage
+      await updateTrackedEmailStatus(data.id, true);
+
+      // Notify content script to update UI
+      chrome.tabs.query({url: 'https://mail.google.com/*'}, (tabs) => {
+        tabs.forEach(tab => {
+          chrome.tabs.sendMessage(tab.id, {
+            type: 'EMAIL_OPENED',
+            data: data
+          }).catch(() => {
+            // Ignore errors if tab is not ready
+          });
+        });
+      });
+
+      log(`✓ Updated status for email: ${data.id}`);
+    });
+
+  } catch (err) {
+    error('❌ Failed to initialize WebSocket:', err);
+  }
+}
+
+// Initial check on startup (check once, then rely on WebSocket)
 log('Running initial status check...');
 checkAllEmailStatuses();
+
+// Initialize WebSocket
+log('🚀 Initializing WebSocket connection...');
+initializeWebSocket();
+
+// Listen for tracking state changes to reconnect/disconnect WebSocket
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (changes.trackingEnabled) {
+    const enabled = changes.trackingEnabled.newValue !== false;
+    log('Tracking state changed:', enabled);
+
+    if (enabled && !socket?.connected) {
+      initializeWebSocket();
+    } else if (!enabled && socket?.connected) {
+      socket.disconnect();
+      log('🔌 WebSocket disconnected due to tracking disabled');
+    }
+  }
+});
 
 log('✓ Mail Tracker background service worker initialized and ready');

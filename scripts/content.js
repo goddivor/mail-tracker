@@ -443,8 +443,9 @@ function init() {
       // Add tracking indicators
       addTrackingIndicators();
 
-      // Refresh indicators periodically
-      setInterval(addTrackingIndicators, 5000);
+      // Refresh indicators periodically (less frequent now that we have WebSocket)
+      // This is just a fallback in case WebSocket events are missed
+      setInterval(addTrackingIndicators, 60000); // Every 60 seconds instead of 5
 
       log('✓ Mail Tracker fully initialized and running');
     } else if (attempts >= maxAttempts) {
@@ -454,6 +455,16 @@ function init() {
     }
   }, 500);
 }
+
+// Listen for real-time updates from background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'EMAIL_OPENED') {
+    log('📧 Real-time update: Email opened:', message.data);
+
+    // Update UI immediately
+    addTrackingIndicators();
+  }
+});
 
 // Start when DOM is ready
 log('DOM ready state:', document.readyState);
